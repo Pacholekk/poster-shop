@@ -2,8 +2,9 @@
 
 import { useMemo, useState } from "react";
 
-import { Product } from "@/types/shop";
+import { PrintType, Product } from "@/types/shop";
 import { useCartStore } from "@/store/cart-store";
+import { useI18n } from "@/lib/i18n";
 
 type AddToCartFormProps = {
   product: Product;
@@ -11,18 +12,23 @@ type AddToCartFormProps = {
 
 export function AddToCartForm({ product }: AddToCartFormProps) {
   const addItem = useCartStore((state) => state.addItem);
+  const { t } = useI18n();
   const [selectedSize, setSelectedSize] = useState(product.sizes[0]);
-  const [selectedPrintType, setSelectedPrintType] = useState(
+  const [selectedPrintType, setSelectedPrintType] = useState<PrintType>(
     product.printType[0],
   );
   const sizes = useMemo(() => product.sizes, [product.sizes]);
   const printTypes = product.printType;
+  const currentPrice =
+    selectedPrintType === "Digital"
+      ? product.pricing.digital
+      : product.pricing.paper[selectedSize];
 
   return (
     <div className="space-y-4 rounded-xl border border-black/10 p-4">
       <div className="space-y-2">
         <label htmlFor="printType" className="text-sm font-medium">
-          Print type
+          {t("form.printType")}
         </label>
         <select
           id="printType"
@@ -34,7 +40,7 @@ export function AddToCartForm({ product }: AddToCartFormProps) {
         >
           {printTypes.map((printType) => (
             <option key={printType} value={printType}>
-              {printType}
+              {printType === "Digital" ? t("product.digital") : t("product.paperRange")}
             </option>
           ))}
         </select>
@@ -42,7 +48,7 @@ export function AddToCartForm({ product }: AddToCartFormProps) {
       {selectedPrintType === "Paper" && (
         <div className="space-y-2">
           <label htmlFor="size" className="text-sm font-medium">
-            Poster size
+            {t("form.posterSize")}
           </label>
           <select
             id="size"
@@ -60,12 +66,20 @@ export function AddToCartForm({ product }: AddToCartFormProps) {
           </select>
         </div>
       )}
+      <p className="text-sm font-semibold">{t("form.price")}: {currentPrice} PLN</p>
       <button
         type="button"
-        onClick={() => addItem(product, selectedSize, selectedPrintType, 1)}
+        onClick={() =>
+          addItem(
+            product,
+            selectedPrintType === "Paper" ? selectedSize : undefined,
+            selectedPrintType,
+            1,
+          )
+        }
         className="w-full rounded-full bg-black px-4 py-2 text-sm font-semibold text-white transition hover:bg-black/85"
       >
-        Add to cart
+        {t("button.addToCart")}
       </button>
     </div>
   );

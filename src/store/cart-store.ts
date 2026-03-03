@@ -9,18 +9,18 @@ type CartStore = {
   items: CartItem[];
   addItem: (
     product: Product,
-    size: PosterSize,
+    size: PosterSize | undefined,
     printType: PrintType,
     quantity?: number,
   ) => void;
   removeItem: (
     productId: string,
-    size: PosterSize,
+    size: PosterSize | undefined,
     printType: PrintType,
   ) => void;
   updateQuantity: (
     productId: string,
-    size: PosterSize,
+    size: PosterSize | undefined,
     printType: PrintType,
     quantity: number,
   ) => void;
@@ -35,6 +35,13 @@ export const useCartStore = create<CartStore>()(
       items: [],
       addItem: (product, size, printType, quantity = 1) =>
         set((state) => {
+          const unitPrice =
+            printType === "Digital"
+              ? product.pricing.digital
+              : product.pricing.paper[size ?? product.sizes[0]];
+
+          if (!unitPrice) return state;
+
           const existingItem = state.items.find(
             (item) =>
               item.productId === product.id &&
@@ -61,10 +68,10 @@ export const useCartStore = create<CartStore>()(
                 productId: product.id,
                 name: product.name,
                 slug: product.slug,
-                image: product.image,
+                image: product.images[0],
                 size,
                 printType,
-                price: product.price,
+                price: unitPrice,
                 quantity,
               },
             ],
@@ -99,8 +106,6 @@ export const useCartStore = create<CartStore>()(
       getTotal: () =>
         get().items.reduce((sum, item) => sum + item.price * item.quantity, 0),
     }),
-    {
-      name: "poster-shop-cart",
-    },
+    { name: "poster-shop-cart" },
   ),
 );

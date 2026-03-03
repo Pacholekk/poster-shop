@@ -7,8 +7,11 @@ export type Product = {
   name: string;
   category: string;
   description: string;
-  price: number;
-  image: string;
+  pricing: {
+    digital: number;
+    paper: Partial<Record<PosterSize, number>>;
+  };
+  images: string[];
   printType: PrintType[];
   sizes: PosterSize[];
   featured?: boolean;
@@ -19,7 +22,7 @@ export type CartItem = {
   name: string;
   slug: string;
   image: string;
-  size: PosterSize;
+  size?: PosterSize;
   printType: PrintType;
   price: number;
   quantity: number;
